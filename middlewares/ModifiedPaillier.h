@@ -2,6 +2,7 @@
 #include <openssl/rand.h>
 #include <iostream>
 #include <utility>
+#include "Conversion.h" //import int_to_bytes || bytes_to_int
 
 struct PaillierPublicKey {
     BIGNUM* n;
