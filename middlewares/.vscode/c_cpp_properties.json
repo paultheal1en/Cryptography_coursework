@@ -3,9 +3,8 @@
         {
             "name": "Win32",
             "includePath": [
-                "${default}",
-                "C:/msys64/mingw64/include",
-                "${workspaceFolder}/include"
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/include/**"
             ],
             "defines": [
                 "_DEBUG",
@@ -13,18 +12,10 @@
                 "_UNICODE"
             ],
             "windowsSdkVersion": "10.0.22621.0",
-            "compilerPath": "C:/msys64/mingw64/bin/g++.exe",
+            "compilerPath": "cl.exe",
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "gcc-x64",
-            "compileCommands": "",
-            "browse": {
-                "path": [
-                    "${default}",
-                    "C:/msys64/mingw64/include",
-                    "${workspaceFolder}/include"
-                ]
-            }
+            "intelliSenseMode": "windows-msvc-x64"
         }
     ],
     "version": 4
