@@ -1,0 +1,35 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "C/C++: g++.exe build active file",
+			"command": "C:/msys64/mingw64/bin/g++.exe",
+			"args": [
+				"-g2", 
+				"-O3", 
+				"-DNDEBUG", 
+				"${file}", 
+				"-o",
+				"${fileDirname}/${fileBasenameNoExtension}.so",
+				"-D_WIN32_WINNT=0x0B00",
+				"-lpthread",
+				"-L${workspaceFolder}/lib", //libraries folder
+				"-l:libcryptopp.a", //-lcryptopp
+				"-I${workspaceFolder}/include",//header folder
+				"-Wall", 
+				"-shared",
+                "-DBUILD_DLL", // for buil .dll ,.so
+                "-fvisibility=hidden",
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+			"detail": "compiler: C:/msys64/mingw64/bin/g++.exe"
+		}
+	]
+}
