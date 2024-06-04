@@ -48,7 +48,20 @@ using CryptoPP::ByteQueue;
 	#include <cstdlib>
 	#include <locale>
 	#include <cctype>
+//- Add setting for export dll or .so (Windows, Linux)
+// Define DLL export macro
+#ifndef SO_EXPORT
+#ifdef _WIN32
+#define SO_EXPORT __declspec(dllexport)
+#else
+#define SO_EXPORT
+#endif
+#endif
 
+// Declare functions with extern "C" to prevent name mangling in C++
+extern "C" {
+	SO_EXPORT void HMAC_SHA3_256(const char* key_content, const char* input_content, char* output_hexmac, size_t output_size);
+}
 // Hàm XOR với pad
 SecByteBlock xorWithpad(const unsigned char pad, const SecByteBlock key) {
     SecByteBlock keyP = key;
@@ -95,4 +108,11 @@ void HMAC_SHA3_256(const char* key_content, const char* input_content, char* out
     // Sao chép kết quả hex vào output_hexmac
     strncpy(output_hexmac, hexmac.c_str(), output_size);
 }
-
+int main() {
+    const char* key = "thisisakey";
+    const char* input = "this is some input text";
+    char output[65]; // 64 ký tự hex + 1 ký tự null
+    HMAC_SHA3_256(key, input, output, sizeof(output));
+    cout << "HMAC-SHA3-256: " << output << endl;
+    return 0;
+}
