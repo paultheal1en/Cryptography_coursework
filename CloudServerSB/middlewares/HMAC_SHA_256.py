@@ -16,7 +16,7 @@ HMAC_SHA3_256.argtypes = [c_char_p,c_char_p,c_char_p,ctypes.c_size_t]
 HMAC_SHA3_256.restype = None  
 
 # Wrapped functions
-def hmac_sha3_256(key, data):
+def hmac_sha256(key, data):
     key = key.encode('utf-8')
     data = data.encode('utf-8')
 

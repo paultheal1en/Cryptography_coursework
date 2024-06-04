@@ -38,9 +38,9 @@ iv = random.randbytes(16).hex()
 context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s = context.wrap_socket(s, server_hostname='cloudsashd.duckdns.org')
+s = context.wrap_socket(s, server_hostname='cloudsashs.wuaze.com')
 # Send key to SA
-HOST = 'cloudsashd.duckdns.org'
+HOST = 'cloudsashs.wuaze.com'
 PORT = 2808
 s.connect((HOST, PORT))
 s.send(b"TrustAuthority\n")
@@ -58,8 +58,8 @@ s.close()
 # Send key to SB
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s = context.wrap_socket(s, server_hostname='cloudsbshd.duckdns.org')
-HOST = 'cloudsbshd.duckdns.org'
+s = context.wrap_socket(s, server_hostname='cloudsbshs.wuaze.com')
+HOST = 'cloudsbshs.wuaze.com'
 PORT = 2809
 s.connect((HOST, PORT))
 s.send(b"TrustAuthority\n")

@@ -5,7 +5,7 @@ import threading
 from middlewares.ModifiedPaillier import _mul_, oppoE, DEp1, DEp2
 from middlewares.HMAC_SHA_256 import hmac_sha256, int_to_bytes
 from middlewares.VariantBloomFilter import *
-from pybloom import BloomFilter
+from pybloom_live import BloomFilter
 from base64 import b64decode, b64encode
 import json
 import time
