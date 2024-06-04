@@ -2,7 +2,7 @@ import ctypes
 from ctypes import c_char_p
 import sys
 import os
-from middlewares.Conversion import int_to_bytes
+
 # .so path
 sopath = os.path.join(os.getcwd(),"middlewares/HMAC_SHA3_256.so")
 
@@ -11,7 +11,7 @@ lib = ctypes.CDLL(sopath,winmode=ctypes.DEFAULT_MODE)
 
 # Set up the prototype of the function
 # All of then are strings (char*)
-HMAC_SHA3_256 = lib.HMAC_SHA3_256
+HMAC_SHA3_256 = lib._Z13HMAC_SHA3_256PKcS0_Pcy
 HMAC_SHA3_256.argtypes = [c_char_p,c_char_p,c_char_p,ctypes.c_size_t]
 HMAC_SHA3_256.restype = None  
 
