@@ -1,37 +1,37 @@
-{ "version": "2.0.0",  
-
-"tasks": [  
-{  
-
-"type": "shell", 
-"label": "C/C++: g++.exe build active file", 
-"command": "g++", 
-"args": [  
-	"-g2", 
-	"-O3",  
-	"-DNDEBUG",  
-	"${file}",  
-	"-o",  
-	"${fileDirname}\\${fileBasenameNoExtension}.exe",  
-	"-D_WIN32_WINNT=0x0A00",  
-	"-pthread",  
-	"-L${workspaceFolder}\\lib", 	 
-	"-l:libcryptopp.a",  
-	"-I${workspaceFolder}\\include", 
-	"-Wall",  
-],  
-"options": {  
-    "cwd": "C:\\msys64\\mingw64\\bin"  
-}, 
-"problemMatcher": [  
-    "$gcc" 
-],  
-
-"group":{  
-    "kind": "build", 
-    "isDefault": true  
-},  
-"detail": "compiler: C:\\msys64\\mingw64\\bin\\g++.exe" 
-} 
-]  
-} 
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "C/C++: g++.exe -cryptopp build active file",
+			"command": "g++.exe",
+			"args": [
+				"-g2", 
+				"-O3", 
+				"-DNDEBUG", 
+				"${file}", 
+				"-o",
+				"${fileDirname}/${fileBasenameNoExtension}.so",
+				"-D_WIN32_WINNT=0x0A",
+				"-lpthread",
+				"-L${workspaceFolder}/lib", //libraries folder
+				"-l:libcryptopp.a", //-lcryptopp
+				"-I${workspaceFolder}/include",//header folder
+				"-lcrypt32",
+				"-lws2_32",
+				"-Wall", 
+				"-shared",
+                "-DBUILD_DLL", // for buil dll
+                "-fvisibility=hidden",
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+			"detail": "compiler: C:\\msys64\\mingw64\\bin\\g++.exe"
+		}
+	]
+}
