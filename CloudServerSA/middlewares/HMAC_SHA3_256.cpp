@@ -42,12 +42,9 @@ using CryptoPP::SecByteBlock;
 
 #include <cryptopp/queue.h>
 using CryptoPP::ByteQueue;
-#ifdef _WIN32
-	#include <windows.h>
-	#endif
-	#include <cstdlib>
-	#include <locale>
-	#include <cctype>
+#include <cstdlib>
+#include <locale>
+#include <cctype>
 // Hàm XOR với pad
 SecByteBlock xorWithpad(const unsigned char pad, const SecByteBlock key) {
     SecByteBlock keyP = key;
@@ -58,7 +55,7 @@ SecByteBlock xorWithpad(const unsigned char pad, const SecByteBlock key) {
     return keyP;
 }
 // Hàm HMAC-SHA3-256
-void HMAC_SHA3_256(const byte* key_content, size_t key_length, const byte* input_content, size_t input_length, char* output_hexmac, size_t output_size) {
+void HMAC_SHA3_256(const CryptoPP::byte* key_content, size_t key_length, const CryptoPP::byte* input_content, size_t input_length, char* output_hexmac, size_t output_size) {
     // Chuyển key sang SecByteBlock
     SecByteBlock key(key_content, key_length);
 
@@ -80,7 +77,7 @@ void HMAC_SHA3_256(const byte* key_content, size_t key_length, const byte* input
 
     // Chuyển kết quả sang dạng hex
     HexEncoder encoder;
-    encoder.Attach(new ArraySink(reinterpret_cast<byte*>(output_hexmac), output_size));
+    encoder.Attach(new ArraySink(reinterpret_cast<CryptoPP::byte*>(output_hexmac), output_size));
     encoder.Put(mac, mac.size());
     encoder.MessageEnd();
 }
