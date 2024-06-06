@@ -28,6 +28,7 @@ class ThreadedServer(object):
         self.port = port
         context_server = ssl.create_default_context(
             purpose=ssl.Purpose.CLIENT_AUTH)
+        context_server.check_hostname = False  # Tắt kiểm tra tên máy chủ
         context_server.verify_mode = ssl.CERT_NONE 
         context_server.load_cert_chain(
             certfile='./cloudsbshs.wuaze.com/certificate.crt', keyfile='./cloudsbshs.wuaze.com/ec-private-key.pem')

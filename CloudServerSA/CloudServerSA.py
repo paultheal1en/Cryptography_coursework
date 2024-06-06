@@ -41,6 +41,7 @@ class ThreadedServer(object):
         self.port = port
         context_server = ssl.create_default_context(
             purpose=ssl.Purpose.CLIENT_AUTH)
+        context_server.check_hostname = False  # Tắt kiểm tra tên máy chủ
         context_server.verify_mode = ssl.CERT_NONE
         context_server.load_cert_chain(
             certfile='./cloudsashs.wuaze.com/self-signed-cert.pem', keyfile='./cloudsashs.wuaze.com/ec-private-key.pem')
@@ -55,120 +56,101 @@ class ThreadedServer(object):
             try:
                 client, address = self.s_sock.accept()
                 client.settimeout(60)
-                threading.Thread(target=self.listenToClient,
-                                 args=(client, address)).start()
+                threading.Thread(target=self.listenToClient, args=(client, address)).start()
             except ssl.SSLEOFError as e:
-                logging.error(f"SSL connection error: {e}")
+                logging.error(f"Lỗi kết nối SSL: {e}")
             except socket.timeout as e:
-                logging.error(f"Socket timeout error: {e}")
+                logging.error(f"Lỗi timeout socket: {e}")
             except ssl.SSLError as e:
-                logging.error(f"SSL error: {e}")
+                logging.error(f"Lỗi SSL: {e}")
             except Exception as e:
-                logging.error(f"Error accepting connection: {e}")
+                logging.error(f"Lỗi khi chấp nhận kết nối: {e}")
 
     def listenToClient(self, client, address):
         try:
             while True:
                 data = recvuntilendl(client)
-                logging.info(f"Data received: {data}")
+                logging.info(f"Dữ liệu nhận từ {address}: {data}")
                 if data:
-                    if (data.decode() == 'IOTgateway'):
+                    if data.decode() == 'IOTgateway':
                         data = recvuntilendl(client)
-                        print(data)
+                        logging.info(f"Payload từ IOTgateway: {data}")
                         data = json.loads(data.decode())
-                        # print(data)
                         Cv = b64decode(data['Cv'])
                         Cw = b64decode(data['Cw']).split(b', ')
-                        Ew = [json.loads(wi.replace(b". ", b", ").decode())
-                            for wi in b64decode(data['Ew']).replace(b", ", b". ").split(b',')]
+                        Ew = [json.loads(wi.replace(b". ", b", ").decode()) for wi in b64decode(data['Ew']).replace(b", ", b". ").split(b',')]
                         id = data['id']
                         mac = b64decode(data['mac'])
-                        macq = hmac_sha256(t0, Cv + b', '.join(Cw) +
-                                        b','.join(json.dumps(wi).encode() for wi in Ew))
-                        assert (mac == macq)
-                        # pass
-                        # print(TBL)
-
+                        macq = hmac_sha256(t0, Cv + b', '.join(Cw) + b','.join(json.dumps(wi).encode() for wi in Ew))
+                        assert mac == macq
+                        print (mac)
+                        print (macq)
                         for i in range(len(Cw)):
-                            if (VBFVerify(VBF, Cw[i]) == 1):
+                            if VBFVerify(VBF, Cw[i]) == 1:
                                 TBL[Cw[i]]['fileid'].append(id)
                             else:
                                 TBL[Cw[i]] = {}
                                 TBL[Cw[i]]['keyword'] = Ew[i]
                                 TBL[Cw[i]]['fileid'] = [id]
                                 VBFAdd(VBF, Cw[i])
-                        # print(TBL)
                         EncodedFile[id] = b64encode(Cv).decode()
-                        print(len(TBL.keys()))
+                        logging.info(f"Số lượng từ khóa trong TBL: {len(TBL.keys())}")
+                        client.sendall(b'ACK\n')  # Gửi ACK để thông báo đã nhận và xử lý xong
                     elif data.decode() == 'CloudServerSB':
                         query = recvuntilendl(client)
                         query = json.loads(query.decode())
                         fileIDresults = set()
                         cnt = 1
-                        if type(query) == type({}):
+                        if isinstance(query, dict):
                             for Et in query['a']:
                                 for key in TBL.keys():
-                                    D = _mul_(
-                                        pk, TBL[key]['keyword'], query['Esw'])
+                                    D = _mul_(pk, TBL[key]['keyword'], query['Esw'])
                                     D = _mul_(pk, D, Et)
                                     Dq = DEp1(pk, skp1, D)
-                                    client.sendall(
-                                        (json.dumps(Dq) + '\n').encode())
-                                    res = json.loads(recvuntilendl(
-                                        client).decode())['res']
-                                    if (res == 1):
-                                        fileIDresults.update(
-                                            TBL[key]['fileid'])
-                                    print(cnt)
+                                    client.sendall((json.dumps(Dq) + '\n').encode())
+                                    res = json.loads(recvuntilendl(client).decode())['res']
+                                    if res == 1:
+                                        fileIDresults.update(TBL[key]['fileid'])
+                                    logging.info(f"Đã xử lý phần truy vấn {cnt}")
                                     cnt += 1
                             client.sendall(b'End\n')
                         else:
-                            # print(TBL)
-                            # start = time.time()
                             for Esw in query:
                                 res_tmp = set()
                                 for key in TBL.keys():
-                                    D = _mul_(
-                                        pk, TBL[key]['keyword'], Esw)
+                                    D = _mul_(pk, TBL[key]['keyword'], Esw)
                                     Dq = DEp1(pk, skp1, D)
-                                    client.sendall(
-                                        (json.dumps(Dq) + '\n').encode())
-                                    res = json.loads(recvuntilendl(
-                                        client).decode())['res']
-                                    if (res == 1):
-                                        res_tmp.update(
-                                            TBL[key]['fileid'])
-
-                                    print(cnt)
+                                    client.sendall((json.dumps(Dq) + '\n').encode())
+                                    res = json.loads(recvuntilendl(client).decode())['res']
+                                    if res == 1:
+                                        res_tmp.update(TBL[key]['fileid'])
+                                    logging.info(f"Đã xử lý phần truy vấn {cnt}")
                                     cnt += 1
                                 if Esw == query[0]:
                                     fileIDresults.update(res_tmp)
                                 else:
-                                    fileIDresults.intersection_update(
-                                        res_tmp)
+                                    fileIDresults.intersection_update(res_tmp)
                             client.sendall(b'End\n')
-                            # print(time.time() - start)
 
                         result = []
                         for id in fileIDresults:
                             result.append([id, EncodedFile[id]])
-                        client.sendall(
-                            (json.dumps(result) + '\n').encode())
+                        client.sendall((json.dumps(result) + '\n').encode())
                     elif data.decode() == 'TrustAuthority':
-                        data = recvuntilendl(
-                            client).decode().replace(',', '\n')
-                        print(data)
-                        logging.info(f"Additional data: {data}")
+                        data = recvuntilendl(client).decode().replace(',', '\n')
+                        logging.info(f"Dữ liệu bổ sung từ TrustAuthority: {data}")
                         exec(data, globals(), globals())
-
                         exec("pk = {'n': mpz(n), 'h': mpz(h), 'g': mpz(g)}", globals(), globals())
-                        #print(pk)
                 else:
-                    logging.info('Client disconnected (1)')
+                    logging.info('Client đã ngắt kết nối (1)')
                     break  # Thoát khỏi vòng lặp khi client ngắt kết nối
         except Exception as e:
-            logging.error(f"Client disconnected (2): {e}")
+            logging.error(f"Client đã ngắt kết nối (2): {e}")
         finally:
+            try:
+                client.sendall(b'End\n')  # Gửi End để đảm bảo client biết kết thúc dữ liệu
+            except:
+                pass
             client.close()
 
 if __name__ == "__main__":

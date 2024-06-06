@@ -48,25 +48,25 @@ payload_b += ("g = " + str(g) + ',').encode()
 payload_b += ("n = " + str(n) + ',').encode()
 payload_b += ("skp2 = " + str(skp2) + '\n').encode()
 
-# Tạo context cho SSL
 context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
 context.check_hostname = False  # Tắt kiểm tra tên máy chủ
 context.verify_mode = ssl.CERT_NONE  # Tắt xác minh chứng chỉ
-def send_data_to_server(port, payload):
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s = context.wrap_socket(s, server_hostname='localhost')
-        HOST = '127.0.0.1'
-        s.connect((HOST, port))
-        s.sendall(b"TrustAuthority\n")
-        logging.info("Sent initial message")
-        s.sendall(payload)
-        logging.info(f"Payload sent to port {port}: {payload}")
-        s.close()
-    except Exception as e:
-        logging.error(f"Error connecting to port {port}: {e}")
-send_data_to_server(2808, payload_a)
-send_data_to_server(2809, payload_b)
+# Gửi data cho SA
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s = context.wrap_socket(s, server_hostname='localhost')
+s.connect(('127.0.0.1', 2808))
+s.sendall(b"TrustAuthority\n")
+s.sendall(payload_a)
+
+
+
+# Gửi data cho SB
+sb = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sb = context.wrap_socket(sb, server_hostname='localhost')
+sb.connect(('127.0.0.1', 2809))
+sb.sendall(b"TrustAuthority\n")
+sb.sendall(payload_b)
+# sb.close()
 def recvuntilendl(client):
     res = b''
     while True:
@@ -85,6 +85,7 @@ class ThreadedServer(object):
         self.port = port
         context_server = ssl.create_default_context(
             purpose=ssl.Purpose.CLIENT_AUTH)
+        context_server.check_hostname = False  # Tắt kiểm tra tên máy chủ
         context_server.verify_mode = ssl.CERT_NONE 
         context_server.load_cert_chain(
             certfile='./trust-authority.wuaze.com/self-signed-cert.pem',
@@ -111,6 +112,7 @@ class ThreadedServer(object):
         try:
             while True:
                 data = recvuntilendl(client)
+                
                 if data:
                     if (data.decode() == 'IOTgateway'):
                         payload = ""
