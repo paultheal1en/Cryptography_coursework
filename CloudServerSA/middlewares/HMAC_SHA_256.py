@@ -12,7 +12,7 @@ sopath = os.path.join(os.getcwd(),"middlewares/HMAC_SHA3_256.so")
 #load the shared library
 lib = ctypes.CDLL(sopath,winmode=ctypes.DEFAULT_MODE)
 
-HMAC_SHA3_256 = lib._Z13HMAC_SHA3_256PKhyS0_yPcy
+HMAC_SHA3_256 = lib.HMAC_SHA3_256
 HMAC_SHA3_256.argtypes = [
     ctypes.POINTER(ctypes.c_ubyte),
     ctypes.c_size_t,
