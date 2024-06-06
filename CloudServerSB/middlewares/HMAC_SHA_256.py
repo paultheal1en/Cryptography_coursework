@@ -7,7 +7,7 @@ from middlewares.Conversion import int_to_bytes
 # def int_to_bytes(n):    
 #     return n.to_bytes((n.bit_length() + 7) // 8, 'big')
 # .so path
-sopath = os.path.join(os.getcwd(),"HMAC_SHA3_256.so")
+sopath = os.path.join(os.getcwd(),"middlewares/HMAC_SHA3_256.so")
 
 #load the shared library
 lib = ctypes.CDLL(sopath,winmode=ctypes.DEFAULT_MODE)
