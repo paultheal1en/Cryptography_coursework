@@ -57,9 +57,9 @@ class ThreadedServer(object):
                             ssl.Purpose.SERVER_AUTH)
                         sa = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         sa = context_client.wrap_socket(
-                            sa, server_hostname='cloudsashd.duckdns.org')
+                            sa, server_hostname='cloudsashs.wuaze.com')
                         # Connect to SA
-                        sa.connect(('cloudsashd.duckdns.org', 2808))
+                        sa.connect(('cloudsashs.wuaze.com', 2808))
 
                         if type(data) == type({}):
                             a = []
