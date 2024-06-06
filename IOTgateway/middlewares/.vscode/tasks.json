@@ -3,8 +3,8 @@
 	"tasks": [
 		{
 			"type": "shell",
-			"label": "C/C++: g++.exe -cryptopp build active file",
-			"command": "g++.exe",
+			"label": "C/C++: g++.exe build active file",
+			"command": "C:/msys64/mingw64/bin/g++.exe",
 			"args": [
 				"-g2", 
 				"-O3", 
@@ -12,16 +12,14 @@
 				"${file}", 
 				"-o",
 				"${fileDirname}/${fileBasenameNoExtension}.so",
-				"-D_WIN32_WINNT=0x0A",
+				"-D_WIN32_WINNT=0x0B00",
 				"-lpthread",
 				"-L${workspaceFolder}/lib", //libraries folder
 				"-l:libcryptopp.a", //-lcryptopp
 				"-I${workspaceFolder}/include",//header folder
-				"-lcrypt32",
-				"-lws2_32",
 				"-Wall", 
 				"-shared",
-                "-DBUILD_DLL", // for buil dll
+                "-DBUILD_DLL", // for buil .dll ,.so
                 "-fvisibility=hidden",
 			],
 			"options": {
@@ -31,7 +29,7 @@
 				"$gcc"
 			],
 			"group": "build",
-			"detail": "compiler: C:\\msys64\\mingw64\\bin\\g++.exe"
+			"detail": "compiler: C:/msys64/mingw64/bin/g++.exe"
 		}
 	]
 }

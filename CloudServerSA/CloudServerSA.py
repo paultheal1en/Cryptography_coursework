@@ -9,25 +9,31 @@ from pybloom_live import BloomFilter
 from base64 import b64decode, b64encode
 import json
 import time
+import logging
 from gmpy2 import *
+
+# Thiết lập logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Khởi tạo Bloom Filter
 VBF = BloomFilter(capacity=10000)
 
+# Biến toàn cục
 TBL = {}
 EncodedFile = {}
 label = 1
 
-
+# Hàm nhận dữ liệu từ client cho đến khi gặp ký tự xuống dòng
 def recvuntilendl(client):
     res = b''
-    while (True):
+    while True:
         ch = client.recv(1)
         if not ch:
             break
-        if (ch == b'\n'):
+        if ch == b'\n':
             break
         res += ch
     return res
-
 
 class ThreadedServer(object):
     def __init__(self, host, port):
@@ -35,9 +41,9 @@ class ThreadedServer(object):
         self.port = port
         context_server = ssl.create_default_context(
             purpose=ssl.Purpose.CLIENT_AUTH)
+        context_server.verify_mode = ssl.CERT_NONE
         context_server.load_cert_chain(
-            certfile='./cloudsashs.wuaze.com/certificate.crt', keyfile='./cloudsashs.wuaze.com/ec-private-key.pem')
-
+            certfile='./cloudsashs.wuaze.com/self-signed-cert.pem', keyfile='./cloudsashs.wuaze.com/ec-private-key.pem')
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((self.host, self.port))
@@ -46,21 +52,29 @@ class ThreadedServer(object):
 
     def listen(self):
         while True:
-            client, address = self.s_sock.accept()
-            client.settimeout(60)
-            threading.Thread(target=self.listenToClient,
-                             args=(client, address)).start()
+            try:
+                client, address = self.s_sock.accept()
+                client.settimeout(60)
+                threading.Thread(target=self.listenToClient,
+                                 args=(client, address)).start()
+            except ssl.SSLEOFError as e:
+                logging.error(f"SSL connection error: {e}")
+            except socket.timeout as e:
+                logging.error(f"Socket timeout error: {e}")
+            except ssl.SSLError as e:
+                logging.error(f"SSL error: {e}")
+            except Exception as e:
+                logging.error(f"Error accepting connection: {e}")
 
     def listenToClient(self, client, address):
         try:
             while True:
                 data = recvuntilendl(client)
-                # print(data)
+                logging.info(f"Data received: {data}")
                 if data:
-                    # Set the response to echo back the recieved data
-                    # print(data)
                     if (data.decode() == 'IOTgateway'):
                         data = recvuntilendl(client)
+                        print(data)
                         data = json.loads(data.decode())
                         # print(data)
                         Cv = b64decode(data['Cv'])
@@ -143,22 +157,20 @@ class ThreadedServer(object):
                     elif data.decode() == 'TrustAuthority':
                         data = recvuntilendl(
                             client).decode().replace(',', '\n')
-
+                        print(data)
+                        logging.info(f"Additional data: {data}")
                         exec(data, globals(), globals())
 
-                        exec(
-                            "pk = {'n': mpz(n), 'h': mpz(h), 'g': mpz(g)}", globals(), globals())
-                        # print(pk)
-
+                        exec("pk = {'n': mpz(n), 'h': mpz(h), 'g': mpz(g)}", globals(), globals())
+                        #print(pk)
                 else:
-                    raise Exception('Client disconnected')
+                    logging.info('Client disconnected (1)')
+                    break  # Thoát khỏi vòng lặp khi client ngắt kết nối
         except Exception as e:
-            print_exception(e)
-            print('Client disconnected')
+            logging.error(f"Client disconnected (2): {e}")
+        finally:
             client.close()
 
-
 if __name__ == "__main__":
-    # port = int(input("Port? "))
     while True:
         ThreadedServer('0.0.0.0', 2808).listen()

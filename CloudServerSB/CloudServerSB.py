@@ -6,19 +6,21 @@ from traceback import print_exception
 from middlewares.Conversion import *
 from middlewares.ModifiedPaillier import *
 from gmpy2 import *
+import logging
 
+# Thiết lập logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def recvuntilendl(client):
     res = b''
-    while (True):
+    while True:
         ch = client.recv(1)
         if not ch:
             break
-        if (ch == b'\n'):
+        if ch == b'\n':
             break
         res += ch
     return res
-
 
 class ThreadedServer(object):
     def __init__(self, host, port):
@@ -26,9 +28,9 @@ class ThreadedServer(object):
         self.port = port
         context_server = ssl.create_default_context(
             purpose=ssl.Purpose.CLIENT_AUTH)
+        context_server.verify_mode = ssl.CERT_NONE 
         context_server.load_cert_chain(
             certfile='./cloudsbshs.wuaze.com/certificate.crt', keyfile='./cloudsbshs.wuaze.com/ec-private-key.pem')
-
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((self.host, self.port))
@@ -37,16 +39,25 @@ class ThreadedServer(object):
 
     def listen(self):
         while True:
-            client, address = self.s_sock.accept()
-            client.settimeout(60)
-            threading.Thread(target=self.listenToClient,
-                            args=(client, address)).start()
+            try:
+                client, address = self.s_sock.accept()
+                client.settimeout(60)
+                threading.Thread(target=self.listenToClient,
+                                 args=(client, address)).start()
+            except ssl.SSLEOFError as e:
+                logging.error(f"SSL connection error: {e}")
+            except socket.timeout as e:
+                logging.error(f"Socket timeout error: {e}")
+            except ssl.SSLError as e:
+                logging.error(f"SSL error: {e}")
+            except Exception as e:
+                logging.error(f"Error accepting connection: {e}")
 
     def listenToClient(self, client, address):
         try:
             while True:
                 data = recvuntilendl(client)
-                # print(data)
+                print(data)
                 if data:
                     # Set the response to echo back the recieved data
                     # print(data)
@@ -57,9 +68,9 @@ class ThreadedServer(object):
                             ssl.Purpose.SERVER_AUTH)
                         sa = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         sa = context_client.wrap_socket(
-                            sa, server_hostname='cloudsashd.duckdns.org')
+                            sa, server_hostname='localhost')
                         # Connect to SA
-                        sa.connect(('cloudsashd.duckdns.org', 2808))
+                        sa.connect(('localhost', 2808))
 
                         if type(data) == type({}):
                             a = []
@@ -96,34 +107,21 @@ class ThreadedServer(object):
                         sa.close()
                     elif data.decode() == 'TrustAuthority':
                         data = recvuntilendl(
-                            client).decode().replace(',', '\n')
+                            client).decode().replace(', ', '\n')
 
                         exec(data, globals(), globals())
 
                         # pk = {'n': mpz(n), 'h': mpz(h), 'g': mpz(g)}
-                        exec(
-                            "pk = {'n': mpz(n), 'h': mpz(h), 'g': mpz(g)}", globals(), globals())
+                        exec("pk = {'n': mpz(n), 'h': mpz(h), 'g': mpz(g)}", globals(), globals())
                         # print(pk)
                 else:
-                    raise Exception('Client disconnected')
+                    logging.info('Client disconnected (1)')
+                    break  # Thoát khỏi vòng lặp khi client ngắt kết nối
         except Exception as e:
-            print_exception(e)
-            print('Client disconnected')
+            logging.error(f"Client disconnected (2): {e}")
+        finally:
             client.close()
 
-
 if __name__ == "__main__":
-    # port = int(input("Port? "))
     while True:
         ThreadedServer('0.0.0.0', 2809).listen()
-
-# data =
-# data = json.loads(data)
-# if 'r' in data.keys():
-#     a = []
-#     r = data['r']
-#     Esw = data['Esw']
-#     for i in range(r + 1):
-#         a.append(oppoE(pk, prepare_keyword(i)))
-#     query = {'Esw': Esw, 'a': a}
-#     print(json.dumps(query))

@@ -25,15 +25,20 @@ def recvuntilendl(client):
         res += ch
     return res
 
-
+# Kết nối với TA
 context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-
+context.check_hostname = False  # Tắt kiểm tra tên máy chủ
+context.verify_mode = ssl.CERT_NONE  # Tắt xác minh chứng chỉ
+# Tạo socket và bọc nó trong SSL
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s = context.wrap_socket(s, server_hostname='trust-authority.wuaze.com')
-s.connect(('trust-authority.wuaze.com', 2810))
+s = context.wrap_socket(s, server_hostname='localhost')
+# Kết nối đến Trust Authority
+s.connect(('127.0.0.1', 2810))
+# Gửi dữ liệu đến Trust Authority và nhận phản hồi
 s.sendall(b"IOTgateway\n")
 data = recvuntilendl(s).decode().replace(',', '\n')
 exec(data)
+print(data)
 # Modified Paillier Parameters
 pk = {'n': mpz(n), 'h': mpz(h), 'g': mpz(g)}
 
@@ -60,15 +65,16 @@ vitalsigns = [b"age",
               b"is_patient"]
 
 # fo = open('DataSet/SA.txt', 'w+')
-
+# Kết nối với SA
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s = context.wrap_socket(s, server_hostname='cloudsashs.wuaze.com')
-s.connect(('cloudsashs.wuaze.com', 2808))
+s = context.wrap_socket(s, server_hostname='localhost')
+s.connect(('127.0.0.1', 2808))
 with open('PHI.csv', 'r') as fi:
     for fv in fi.readlines()[:100]:
         w = [i.encode() for i in fv.strip().split(',')]
 
         fv = fv.strip().encode()
+
         Mac = hmac_sha256(k, fv)
 
         fvq = Mac + fv

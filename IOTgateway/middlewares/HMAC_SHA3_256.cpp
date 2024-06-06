@@ -48,7 +48,6 @@ using CryptoPP::ByteQueue;
 	#include <cstdlib>
 	#include <locale>
 	#include <cctype>
-//- Add setting for export dll or .so (Windows, Linux)
 // Hàm XOR với pad
 SecByteBlock xorWithpad(const unsigned char pad, const SecByteBlock key) {
     SecByteBlock keyP = key;
@@ -58,48 +57,30 @@ SecByteBlock xorWithpad(const unsigned char pad, const SecByteBlock key) {
     }
     return keyP;
 }
-
 // Hàm HMAC-SHA3-256
-void HMAC_SHA3_256(const char* key_content, const char* input_content, char* output_hexmac, size_t output_size) {
+void HMAC_SHA3_256(const byte* key_content, size_t key_length, const byte* input_content, size_t input_length, char* output_hexmac, size_t output_size) {
     // Chuyển key sang SecByteBlock
-    SecByteBlock key(reinterpret_cast<const byte*>(key_content), strlen(key_content));
+    SecByteBlock key(key_content, key_length);
 
-    string mac, i_mac;
+    SecByteBlock mac(SHA3_256::DIGESTSIZE);
     const unsigned char ipad = 0x36;
     const unsigned char opad = 0x5c;
     SecByteBlock k_ipad = xorWithpad(ipad, key);
     SecByteBlock k_opad = xorWithpad(opad, key);
 
-    string file_content(input_content);
-
     // Hash (k xor ipad) với nội dung file
     HMAC<SHA3_256> i_hmac(k_ipad, k_ipad.size());
-    StringSource(file_content, true, 
-        new HashFilter(i_hmac,
-            new StringSink(i_mac)
-        ) 
-    );
+    i_hmac.Update(input_content, input_length);
+    i_hmac.Final(mac);
 
     // Hash (k xor opad) với (i_mac)
     HMAC<SHA3_256> hmac(k_opad, k_opad.size());
-    StringSource(i_mac, true, 
-        new HashFilter(hmac,
-            new StringSink(mac)
-        ) 
-    );
+    hmac.Update(mac, mac.size());
+    hmac.Final(mac);
 
     // Chuyển kết quả sang dạng hex
-    string hexmac;
-    StringSource(mac, true, new HexEncoder(new StringSink(hexmac)));
-
-    // Sao chép kết quả hex vào output_hexmac
-    strncpy(output_hexmac, hexmac.c_str(), output_size);
-}
-int main() {
-    const char* key = "thisisakey";
-    const char* input = "this is some input text";
-    char output[65]; // 64 ký tự hex + 1 ký tự null
-    HMAC_SHA3_256(key, input, output, sizeof(output));
-    cout << "HMAC-SHA3-256: " << output << endl;
-    return 0;
+    HexEncoder encoder;
+    encoder.Attach(new ArraySink(reinterpret_cast<byte*>(output_hexmac), output_size));
+    encoder.Put(mac, mac.size());
+    encoder.MessageEnd();
 }
