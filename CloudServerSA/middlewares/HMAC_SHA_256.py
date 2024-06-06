@@ -10,7 +10,7 @@ from middlewares.Conversion import int_to_bytes
 sopath = os.path.join(os.getcwd(),"middlewares/HMAC_SHA3_256.so")
 
 #load the shared library
-lib = ctypes.CDLL(sopath,winmode=ctypes.DEFAULT_MODE)
+lib = ctypes.CDLL(sopath)
 
 HMAC_SHA3_256 = lib.HMAC_SHA3_256
 HMAC_SHA3_256.argtypes = [
