@@ -66,7 +66,7 @@ sb = context.wrap_socket(sb, server_hostname='localhost')
 sb.connect(('127.0.0.1', 2809))
 sb.sendall(b"TrustAuthority\n")
 sb.sendall(payload_b)
-# sb.close()
+
 def recvuntilendl(client):
     res = b''
     while True:
@@ -112,7 +112,7 @@ class ThreadedServer(object):
         try:
             while True:
                 data = recvuntilendl(client)
-                
+
                 if data:
                     if (data.decode() == 'IOTgateway'):
                         payload = ""

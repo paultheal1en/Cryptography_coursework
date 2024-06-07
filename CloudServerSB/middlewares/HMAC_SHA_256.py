@@ -3,6 +3,7 @@ from ctypes import c_char_p
 import sys
 import os
 import json
+import base64
 from middlewares.Conversion import int_to_bytes
 # def int_to_bytes(n):    
 #     return n.to_bytes((n.bit_length() + 7) // 8, 'big')
@@ -43,8 +44,6 @@ def hmac_sha256(key, data):
         ctypes.sizeof(output_hexmac)
     )
 
-    return output_hexmac.value.decode('utf-8')
+    base64_mac = base64.b64encode(bytes.fromhex(output_hexmac.raw.decode('utf-8')))
+    return base64_mac
 
-# key = 1234567890
-# data = b"Hello, world!"  # Chú ý tiền tố "b" để biểu thị là bytes
-# print(hmac_sha256(key, data))

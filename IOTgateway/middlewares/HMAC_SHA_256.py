@@ -3,11 +3,12 @@ from ctypes import c_char_p
 import sys
 import os
 import json
+import base64
 from middlewares.Conversion import int_to_bytes
 # def int_to_bytes(n):    
 #     return n.to_bytes((n.bit_length() + 7) // 8, 'big')
 # .so path
-sopath = os.path.join(os.getcwd(),"D:/NT219/Cryptography_coursework/IOTgateway/middlewares/HMAC_SHA3_256.so")
+sopath = os.path.join(os.getcwd(),"./middlewares/HMAC_SHA3_256.so")
 
 #load the shared library
 lib = ctypes.CDLL(sopath,winmode=ctypes.DEFAULT_MODE)
@@ -42,12 +43,7 @@ def hmac_sha256(key, data):
         output_hexmac,
         ctypes.sizeof(output_hexmac)
     )
-    # Chuyển dữ liệu hex sang bytes
-    hex_data = output_hexmac.value.decode('utf-8')
-    byte_data = bytes.fromhex(hex_data)
 
-    return byte_data
+    base64_mac = base64.b64encode(bytes.fromhex(output_hexmac.raw.decode('utf-8')))
+    return base64_mac
 
-# key = 1234567890
-# data = b"Hello, world!"  # Chú ý tiền tố "b" để biểu thị là bytes
-# print(hmac_sha256(key, data))

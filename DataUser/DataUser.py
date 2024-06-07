@@ -12,6 +12,10 @@ import ssl
 from gmpy2 import *
 from traceback import print_exception
 import threading
+import logging
+
+# Thiết lập logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 vitalsigns = ["age", "gender", "tot_bilirubin", "direct_bilirubin", "alkphos",
             "sgpt", "sgot", "tot_proteins", "albumin", "ag_ratio", "is_patient"]
@@ -19,21 +23,23 @@ vitalsigns = ["age", "gender", "tot_bilirubin", "direct_bilirubin", "alkphos",
 
 def recvuntilendl(client):
     res = b''
-    while (True):
+    while True:
         ch = client.recv(1)
         if not ch:
             break
-        if (ch == b'\n'):
+        if ch == b'\n':
             break
         res += ch
     return res
 
 
+# Kết nối với TA
 context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-
+context.check_hostname = False  # Tắt kiểm tra tên máy chủ
+context.verify_mode = ssl.CERT_NONE  # Tắt xác minh chứng chỉ
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s = context.wrap_socket(s, server_hostname='trust-authority.wuaze.com')
-s.connect(('trust-authority.wuaze.com', 2810))
+s = context.wrap_socket(s, server_hostname='localhost')
+s.connect(('127.0.0.1', 2810))
 s.sendall(b"DataUser\n")
 data = recvuntilendl(s).decode().replace(',', '\n')
 exec(data)
@@ -65,8 +71,8 @@ def decode_result(result):
 def multi_keyword_search(k: list):
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s = context.wrap_socket(s, server_hostname='cloudsbshs.wuaze.com')
-    s.connect(('cloudsbshs.wuaze.com', 2809))
+    s = context.wrap_socket(s, server_hostname='localhost')
+    s.connect(('localhost', 2809))
     query = []
     for ki in k:
         query.append(oppoE(pk, prepare_keyword(
@@ -80,20 +86,37 @@ def multi_keyword_search(k: list):
 
 
 def keyword_range_search(index, k1, k2):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s = context.wrap_socket(s, server_hostname='localhost')
+        s.connect(('localhost', 2809))
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s = context.wrap_socket(s, server_hostname='cloudsbshs.wuaze.com')
-    s.connect(('cloudsbshs.wuaze.com', 2809))
-
-    r = abs(prepare_keyword(k2) - prepare_keyword(k1))
-    Esw = oppoE(pk, prepare_keyword(
-        vitalsigns[index].encode()) + prepare_keyword(k1))
-    query = json.dumps({'Esw': Esw, 'r': r})
-    s.sendall(b'DataUser\n')
-    s.sendall((query+'\n').encode())
-    result = json.loads(json.loads(recvuntilendl(s).decode()))
-    s.close()
-    return decode_result(result)
+        r = abs(prepare_keyword(k2) - prepare_keyword(k1))
+        Esw = oppoE(pk, prepare_keyword(vitalsigns[index].encode()) + prepare_keyword(k1))
+        query = json.dumps({'Esw': Esw, 'r': r})
+        s.sendall(b'DataUser\n')
+        s.sendall((query+'\n').encode())
+        
+        # Nhận dữ liệu từ server và log dữ liệu nhận được
+        response = recvuntilendl(s)
+        logging.info(f"Server response: {response}")
+        
+        # Kiểm tra xem phản hồi từ server có hợp lệ không
+        if not response:
+            logging.error("No response from server.")
+            s.close()
+            return []
+        
+        result = json.loads(json.loads(response.decode()))
+        s.close()
+        return decode_result(result)
+    except json.JSONDecodeError as e:
+        logging.error(f"JSON decode error: {e}")
+        logging.error("Response from server was not valid JSON.")
+        return []
+    except Exception as e:
+        logging.error(f"Error in keyword_range_search: {e}")
+        return []
 
 
 def print_header():

@@ -58,15 +58,15 @@ class ThreadedServer(object):
         try:
             while True:
                 data = recvuntilendl(client)
-                print(data)
+                logging.info(f"Dữ liệu nhận từ {address}: {data}")
                 if data:
-                    # Set the response to echo back the recieved data
-                    # print(data)
-                    if (data.decode() == 'DataUser'):
+                    if data.decode() == 'DataUser':
                         data = recvuntilendl(client).decode()
                         data = json.loads(data)
                         context_client = ssl.create_default_context(
                             ssl.Purpose.SERVER_AUTH)
+                        context_client.check_hostname = False  # Tắt kiểm tra tên máy chủ
+                        context_client.verify_mode = ssl.CERT_NONE 
                         sa = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         sa = context_client.wrap_socket(
                             sa, server_hostname='localhost')
@@ -80,7 +80,7 @@ class ThreadedServer(object):
                             for i in range(r + 1):
                                 a.append(oppoE(pk, prepare_keyword(i)))
                             query = {'Esw': Esw, 'a': a}
-                            # print(query)
+                            print(query)
                         else:
                             query = data
                             pass
@@ -99,22 +99,16 @@ class ThreadedServer(object):
                             else:
                                 msg = {'res': 0}
                             sa.sendall((json.dumps(msg) + '\n').encode())
-                            # res = json.loads(recvuntilendl(sa).decode())
-                            # result.append(res)
                         result = recvuntilendl(sa).decode()
                         client.sendall(
                             (json.dumps(result) + '\n').encode())
-                        # print(result)
-                        sa.close()
+                        print(result)
+                        # sa.close()
                     elif data.decode() == 'TrustAuthority':
-                        data = recvuntilendl(
-                            client).decode().replace(', ', '\n')
-
+                        data = recvuntilendl(client).decode().replace(',', '\n')
                         exec(data, globals(), globals())
-
-                        # pk = {'n': mpz(n), 'h': mpz(h), 'g': mpz(g)}
                         exec("pk = {'n': mpz(n), 'h': mpz(h), 'g': mpz(g)}", globals(), globals())
-                        # print(pk)
+                        logging.info(f"Dữ liệu bổ sung từ TrustAuthority: {pk}")
                 else:
                     logging.info('Client disconnected (1)')
                     break  # Thoát khỏi vòng lặp khi client ngắt kết nối

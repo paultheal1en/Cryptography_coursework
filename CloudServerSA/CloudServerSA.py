@@ -10,6 +10,7 @@ from base64 import b64decode, b64encode
 import json
 import time
 import logging
+import base64
 from gmpy2 import *
 
 # Thiết lập logging
@@ -74,17 +75,16 @@ class ThreadedServer(object):
                 if data:
                     if data.decode() == 'IOTgateway':
                         data = recvuntilendl(client)
-                        logging.info(f"Payload từ IOTgateway: {data}")
                         data = json.loads(data.decode())
                         Cv = b64decode(data['Cv'])
                         Cw = b64decode(data['Cw']).split(b', ')
                         Ew = [json.loads(wi.replace(b". ", b", ").decode()) for wi in b64decode(data['Ew']).replace(b", ", b". ").split(b',')]
                         id = data['id']
                         mac = b64decode(data['mac'])
-                        macq = hmac_sha256(t0, Cv + b', '.join(Cw) + b','.join(json.dumps(wi).encode() for wi in Ew))
+                        macq = (hmac_sha256(t0, Cv + b', '.join(Cw) + b','.join(json.dumps(wi).encode() for wi in Ew)))
+                        # print (mac)
+                        # print (macq)
                         assert mac == macq
-                        print (mac)
-                        print (macq)
                         for i in range(len(Cw)):
                             if VBFVerify(VBF, Cw[i]) == 1:
                                 TBL[Cw[i]]['fileid'].append(id)
@@ -99,6 +99,7 @@ class ThreadedServer(object):
                     elif data.decode() == 'CloudServerSB':
                         query = recvuntilendl(client)
                         query = json.loads(query.decode())
+                        logging.info(f"query")
                         fileIDresults = set()
                         cnt = 1
                         if isinstance(query, dict):
@@ -109,6 +110,7 @@ class ThreadedServer(object):
                                     Dq = DEp1(pk, skp1, D)
                                     client.sendall((json.dumps(Dq) + '\n').encode())
                                     res = json.loads(recvuntilendl(client).decode())['res']
+                                    logging.info(f"res = {res}")
                                     if res == 1:
                                         fileIDresults.update(TBL[key]['fileid'])
                                     logging.info(f"Đã xử lý phần truy vấn {cnt}")
