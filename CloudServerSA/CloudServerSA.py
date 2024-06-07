@@ -24,6 +24,23 @@ TBL = {}
 EncodedFile = {}
 label = 1
 
+# Hàm ghi dữ liệu Bloom Filter vào file
+def save_vbf(vbf):
+    with open('../DataSetVBF.txt', 'w') as file:
+        file.write('\n'.join([str(item) for item in vbf.bitarray.tolist()]))
+
+
+# Hàm ghi dữ liệu bảng từ khóa vào file
+def save_tbl(tbl):
+    with open('../DataSet/TBL.txt', 'w') as file:
+        for key, value in tbl.items():
+            file.write(f"{key}: {value}\n")
+
+# Hàm ghi dữ liệu từ điển mã hóa vào file
+def save_encodedfile(encodedfile):
+    with open('../DataSet/EncodedFile.txt', 'w') as file:
+        for key, value in encodedfile.items():
+            file.write(f"{key}: {value}\n")
 # Hàm nhận dữ liệu từ client cho đến khi gặp ký tự xuống dòng
 def recvuntilendl(client):
     res = b''
@@ -94,7 +111,13 @@ class ThreadedServer(object):
                                 TBL[Cw[i]]['fileid'] = [id]
                                 VBFAdd(VBF, Cw[i])
                         EncodedFile[id] = b64encode(Cv).decode()
+                        logging.info(f"Thêm file mã hóa với ID: {id}. Tổng số file: {len(EncodedFile)}")
                         logging.info(f"Số lượng từ khóa trong TBL: {len(TBL.keys())}")
+
+                        # Ghi dữ liệu vào file
+                        save_vbf(VBF)
+                        save_tbl(TBL)
+                        save_encodedfile(EncodedFile)
                         client.sendall(b'ACK\n')  # Gửi ACK để thông báo đã nhận và xử lý xong
                     elif data.decode() == 'CloudServerSB':
                         query = recvuntilendl(client)

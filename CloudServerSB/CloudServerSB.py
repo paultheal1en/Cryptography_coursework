@@ -31,7 +31,7 @@ class ThreadedServer(object):
         context_server.check_hostname = False  # Tắt kiểm tra tên máy chủ
         context_server.verify_mode = ssl.CERT_NONE 
         context_server.load_cert_chain(
-            certfile='./cloudsbshs.wuaze.com/certificate.crt', keyfile='./cloudsbshs.wuaze.com/ec-private-key.pem')
+            certfile='./cloudsbshs.wuaze.com/self-signed-cert.pem', keyfile='./cloudsbshs.wuaze.com/ec-private-key.pem')
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((self.host, self.port))
