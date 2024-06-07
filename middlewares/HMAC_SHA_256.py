@@ -1,37 +1,32 @@
 import ctypes
-from ctypes import c_char_p
-import sys
 import os
-import json
 from middlewares.Conversion import int_to_bytes
-# def int_to_bytes(n):    
-#     return n.to_bytes((n.bit_length() + 7) // 8, 'big')
+
 # .so path
-sopath = os.path.join(os.getcwd(),"HMAC_SHA3_256.so")
+sopath = os.path.join(os.getcwd(), "./middlewares/HMAC_SHA3_256.so")
 
-#load the shared library
-lib = ctypes.CDLL(sopath,winmode=ctypes.DEFAULT_MODE)
+# Load the shared library
+lib = ctypes.CDLL(sopath, winmode=ctypes.DEFAULT_MODE)
 
-HMAC_SHA3_256 = lib._Z13HMAC_SHA3_256PKhyS0_yPcy
+HMAC_SHA3_256 = lib._Z13HMAC_SHA3_256PKhyS0_yPh
 HMAC_SHA3_256.argtypes = [
     ctypes.POINTER(ctypes.c_ubyte),
     ctypes.c_size_t,
     ctypes.POINTER(ctypes.c_ubyte),
     ctypes.c_size_t,
-    ctypes.c_char_p,
-    ctypes.c_size_t
+    ctypes.POINTER(ctypes.c_ubyte),
 ]
 HMAC_SHA3_256.restype = None  
 
 # Hàm bọc
-def hmac_sha256(key, data):
+def hmac_sha256(key: int, data: bytes):
     key_bytes = int_to_bytes(key)
     
     # Chuyển đổi data thành mảng byte
-    data_bytes = ctypes.cast(data, ctypes.POINTER(ctypes.c_ubyte))
+    data_bytes = (ctypes.c_ubyte * len(data)).from_buffer_copy(data)
     
-    # Chuẩn bị bộ đệm cho kết quả hexmac
-    output_hexmac = ctypes.create_string_buffer(64)  # SHA3-256 produces 32 bytes, hex is 64 bytes
+    # Chuẩn bị bộ đệm cho kết quả mac
+    output_mac = (ctypes.c_ubyte * 32)()  # SHA3-256 produces 32 bytes
 
     # Gọi hàm từ thư viện C++
     HMAC_SHA3_256(
@@ -39,12 +34,19 @@ def hmac_sha256(key, data):
         ctypes.c_size_t(len(key_bytes)),
         data_bytes,
         ctypes.c_size_t(len(data)),
-        output_hexmac,
-        ctypes.sizeof(output_hexmac)
+        output_mac,
     )
 
-    return output_hexmac.value.decode('utf-8')
+    # Trả về kết quả dưới dạng chuỗi byte
+    return bytes(output_mac)
 
-# key = 1234567890
-# data = b"Hello, world!"  # Chú ý tiền tố "b" để biểu thị là bytes
-# print(hmac_sha256(key, data))
+# Ví dụ sử dụng
+if __name__ == "__main__":
+    key = 1234567890  # Khóa dưới dạng số nguyên
+    message = b'This is a test message'  # Thông điệp dưới dạng byte
+
+    hmac_digest = hmac_sha256(key, message)
+
+    # In kết quả dưới dạng chuỗi byte và dưới dạng hex
+    print("HMAC Digest (byte):", hmac_digest)
+    print("HMAC Digest (hex):", hmac_digest.hex())

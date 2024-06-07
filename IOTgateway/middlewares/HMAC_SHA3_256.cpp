@@ -57,8 +57,7 @@ SecByteBlock xorWithpad(const unsigned char pad, const SecByteBlock key) {
     }
     return keyP;
 }
-// Hàm HMAC-SHA3-256
-void HMAC_SHA3_256(const byte* key_content, size_t key_length, const byte* input_content, size_t input_length, char* output_hexmac, size_t output_size) {
+void HMAC_SHA3_256(const byte* key_content, size_t key_length, const byte* input_content, size_t input_length, byte* output_mac) {
     // Chuyển key sang SecByteBlock
     SecByteBlock key(key_content, key_length);
 
@@ -78,9 +77,6 @@ void HMAC_SHA3_256(const byte* key_content, size_t key_length, const byte* input
     hmac.Update(mac, mac.size());
     hmac.Final(mac);
 
-    // Chuyển kết quả sang dạng hex
-    HexEncoder encoder;
-    encoder.Attach(new ArraySink(reinterpret_cast<byte*>(output_hexmac), output_size));
-    encoder.Put(mac, mac.size());
-    encoder.MessageEnd();
+    // Sao chép kết quả trực tiếp vào output_mac
+    memcpy(output_mac, mac.BytePtr(), mac.size());
 }

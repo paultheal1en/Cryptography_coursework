@@ -13,10 +13,12 @@ from gmpy2 import *
 from traceback import print_exception
 import threading
 import logging
+import base64
 
 # Thiết lập logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
+def bytes_to_hex(bytestring):
+    return bytestring.hex()
 vitalsigns = ["age", "gender", "tot_bilirubin", "direct_bilirubin", "alkphos",
             "sgpt", "sgot", "tot_proteins", "albumin", "ag_ratio", "is_patient"]
 
@@ -51,6 +53,7 @@ kse, iv = key[0:32], key[32:]
 
 
 def decode_result(result):
+    logging.info(f"result ở decode_result: {result}")
     res = []
     # print(result)
     for r in result:
@@ -60,11 +63,18 @@ def decode_result(result):
         # print(fq)
         Mac = fq[:32]
         f = fq[32:]
+        logging.info(f"f: {f}")
         Macq = hmac_sha256(k, f)
-        if Macq != Mac:
+            # Chuyển đổi Mac và Macq thành hex
+        Mac_hex = bytes_to_hex(Mac)
+        Macq_hex = bytes_to_hex(Macq)
+        logging.info(f"Mac: {Mac_hex}")
+        logging.info(f"Macq: {Macq_hex}")
+        if Macq_hex != Mac_hex:
             continue
         res.append([id] + [fi for fi in f.decode().split(',')])
     res.sort()
+    logging.info(f"Res ở decode_result: {res}")
     return res
 
 
@@ -86,38 +96,20 @@ def multi_keyword_search(k: list):
 
 
 def keyword_range_search(index, k1, k2):
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s = context.wrap_socket(s, server_hostname='localhost')
-        s.connect(('localhost', 2809))
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s = context.wrap_socket(s, server_hostname='localhost')
+    s.connect(('localhost', 2809))
 
-        r = abs(prepare_keyword(k2) - prepare_keyword(k1))
-        Esw = oppoE(pk, prepare_keyword(vitalsigns[index].encode()) + prepare_keyword(k1))
-        query = json.dumps({'Esw': Esw, 'r': r})
-        s.sendall(b'DataUser\n')
-        s.sendall((query+'\n').encode())
-        
-        # Nhận dữ liệu từ server và log dữ liệu nhận được
-        response = recvuntilendl(s)
-        logging.info(f"Server response: {response}")
-        
-        # Kiểm tra xem phản hồi từ server có hợp lệ không
-        if not response:
-            logging.error("No response from server.")
-            s.close()
-            return []
-        
-        result = json.loads(json.loads(response.decode()))
-        s.close()
-        return decode_result(result)
-    except json.JSONDecodeError as e:
-        logging.error(f"JSON decode error: {e}")
-        logging.error("Response from server was not valid JSON.")
-        return []
-    except Exception as e:
-        logging.error(f"Error in keyword_range_search: {e}")
-        return []
-
+    r = abs(prepare_keyword(k2) - prepare_keyword(k1))
+    Esw = oppoE(pk, prepare_keyword(
+        vitalsigns[index].encode()) + prepare_keyword(k1))
+    query = json.dumps({'Esw': Esw, 'r': r})
+    s.sendall(b'DataUser\n')
+    s.sendall((query+'\n').encode())
+    result = json.loads(json.loads(recvuntilendl(s).decode()))
+    print(result)
+    s.close()
+    return decode_result(result)
 
 def print_header():
     print("================================================")
@@ -147,6 +139,7 @@ def process_keyword_range_search():
             "End of the range you want to search (value must be 'Male', 'Female' or integer): ")
         start = time.time()
         result = keyword_range_search(index, k1.encode(), k2.encode())
+        logging.info(f"result ở process_keyword_range_search: {result}")
         searchtime = time.time() - start
         print("Time: " + str(searchtime))
         print_result(result)

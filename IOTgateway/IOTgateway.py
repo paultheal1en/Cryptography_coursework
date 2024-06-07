@@ -74,6 +74,8 @@ try:
 
             Mac = hmac_sha256(k, fv)
             fvq = Mac + fv
+            if id == 29 or id == 28:
+                logging.info(f"fv: {fv}")
             Cv = SE(iv, kse).Enc(fvq)
 
             Cw = []

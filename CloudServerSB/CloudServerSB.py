@@ -102,7 +102,7 @@ class ThreadedServer(object):
                         result = recvuntilendl(sa).decode()
                         client.sendall(
                             (json.dumps(result) + '\n').encode())
-                        print(result)
+                        # print(result)
                         # sa.close()
                     elif data.decode() == 'TrustAuthority':
                         data = recvuntilendl(client).decode().replace(',', '\n')
