@@ -1,7 +1,9 @@
 import ctypes
 import os
 
-sopath = os.path.join(os.getcwd(), "./middlewares/AES_CBC_256.so")
+
+sopath = os.path.join(os.getcwd(), "middlewares/AES_CBC_256.so")
+
 
 class SE:
     def __init__(self, iv, key):
@@ -55,21 +57,14 @@ class SE:
 
         return bytes(plaintext[:plaintext_len.value])
 
+# # Example usage
 # key_hex = "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"
-# key = bytes.fromhex(key_hex)  # Chuyển key từ dạng hex sang bytes
-# iv = b'abcdef9876543210'      # IV dưới dạng bytes
+# key = bytes.fromhex(key_hex)  # 32 bytes key for AES-256
+# iv = b'abcdef9876543210'      # 16 bytes IV
 # plaintext = b'This is a secret message'
 
 # se = SE(iv, key)
 # ciphertext = se.Enc(plaintext)
 # print("Ciphertext:", ciphertext)
-
-# # Chuyển đổi ciphertext và plaintext sang dạng hex
-# ciphertext_hex = ciphertext.hex()
-# print("Ciphertext in hex:", ciphertext_hex)
-
 # decrypted = se.Dec(ciphertext)
 # print("Decrypted:", decrypted)
-
-# plaintext_hex = plaintext.hex()
-# print("Plaintext in hex:", plaintext_hex)
