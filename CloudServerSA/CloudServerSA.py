@@ -110,7 +110,7 @@ class ThreadedServer(object):
                                     Dq = DEp1(pk, skp1, D)
                                     client.sendall((json.dumps(Dq) + '\n').encode())
                                     res = json.loads(recvuntilendl(client).decode())['res']
-                                    logging.info(f"res = {res}")
+                                    logging.info(f"res = {res}") 
                                     if res == 1:
                                         fileIDresults.update(TBL[key]['fileid'])
                                     logging.info(f"Đã xử lý phần truy vấn {cnt}")

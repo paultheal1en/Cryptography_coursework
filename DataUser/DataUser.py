@@ -86,38 +86,20 @@ def multi_keyword_search(k: list):
 
 
 def keyword_range_search(index, k1, k2):
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s = context.wrap_socket(s, server_hostname='localhost')
-        s.connect(('localhost', 2809))
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s = context.wrap_socket(s, server_hostname='localhost')
+    s.connect(('localhost', 2809))
 
-        r = abs(prepare_keyword(k2) - prepare_keyword(k1))
-        Esw = oppoE(pk, prepare_keyword(vitalsigns[index].encode()) + prepare_keyword(k1))
-        query = json.dumps({'Esw': Esw, 'r': r})
-        s.sendall(b'DataUser\n')
-        s.sendall((query+'\n').encode())
-        
-        # Nhận dữ liệu từ server và log dữ liệu nhận được
-        response = recvuntilendl(s)
-        logging.info(f"Server response: {response}")
-        
-        # Kiểm tra xem phản hồi từ server có hợp lệ không
-        if not response:
-            logging.error("No response from server.")
-            s.close()
-            return []
-        
-        result = json.loads(json.loads(response.decode()))
-        s.close()
-        return decode_result(result)
-    except json.JSONDecodeError as e:
-        logging.error(f"JSON decode error: {e}")
-        logging.error("Response from server was not valid JSON.")
-        return []
-    except Exception as e:
-        logging.error(f"Error in keyword_range_search: {e}")
-        return []
-
+    r = abs(prepare_keyword(k2) - prepare_keyword(k1))
+    Esw = oppoE(pk, prepare_keyword(
+        vitalsigns[index].encode()) + prepare_keyword(k1))
+    query = json.dumps({'Esw': Esw, 'r': r})
+    s.sendall(b'DataUser\n')
+    s.sendall((query+'\n').encode())
+    result = json.loads(json.loads(recvuntilendl(s).decode()))
+    print(result)
+    s.close()
+    return decode_result(result)
 
 def print_header():
     print("================================================")
