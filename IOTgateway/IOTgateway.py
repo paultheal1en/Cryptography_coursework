@@ -69,7 +69,8 @@ try:
     logging.info("Kết nối tới server thành công")
     with open('PHI.csv', 'r') as fi:
         for fv in itertools.islice(fi, 100):
-            w = [i.encode() for i in fv.strip().split(',')]
+            w = [i.strip().encode() for i in fv.strip().split(',')]
+            print(w)
             fv = fv.strip().encode()
 
             Mac = hmac_sha256(k, fv)

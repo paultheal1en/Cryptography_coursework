@@ -79,10 +79,10 @@ def decode_result(result):
 
 
 def multi_keyword_search(k: list):
-
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s = context.wrap_socket(s, server_hostname='localhost')
     s.connect(('localhost', 2809))
+    
     query = []
     for ki in k:
         query.append(oppoE(pk, prepare_keyword(
@@ -138,6 +138,8 @@ def process_keyword_range_search():
         k2 = input(
             "End of the range you want to search (value must be 'Male', 'Female' or integer): ")
         start = time.time()
+        print(k1.encode())
+        print(k2.encode())
         result = keyword_range_search(index, k1.encode(), k2.encode())
         logging.info(f"result ở process_keyword_range_search: {result}")
         searchtime = time.time() - start

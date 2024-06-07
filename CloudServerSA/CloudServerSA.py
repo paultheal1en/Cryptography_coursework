@@ -122,7 +122,7 @@ class ThreadedServer(object):
                     elif data.decode() == 'CloudServerSB':
                         query = recvuntilendl(client)
                         query = json.loads(query.decode())
-                        logging.info(f"query")
+                        logging.info(f"query : {query}")
                         fileIDresults = set()
                         cnt = 1
                         if isinstance(query, dict):
@@ -158,6 +158,7 @@ class ThreadedServer(object):
                             client.sendall(b'End\n')
 
                         result = []
+                        logging.info(f"Kết quả truy vấn: {fileIDresults}")
                         for id in fileIDresults:
                             result.append([id, EncodedFile[id]])
                         client.sendall((json.dumps(result) + '\n').encode())
