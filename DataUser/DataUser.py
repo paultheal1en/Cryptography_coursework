@@ -81,7 +81,7 @@ def multi_keyword_search(k: list):
     s.sendall(b'DataUser\n')
     s.sendall((query+'\n').encode())
     result = json.loads(json.loads(recvuntilendl(s).decode()))
-    s.close()
+    # s.close()
     return decode_result(result)
 
 
