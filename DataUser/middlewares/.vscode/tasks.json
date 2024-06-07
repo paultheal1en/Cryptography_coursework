@@ -1,0 +1,36 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "C/C++: g++ build active file",
+            "command": "/usr/bin/g++",
+            "args": [
+                "-g2", // Thêm thông tin gỡ lỗi mức độ 2
+                "-O3", // Tối ưu hóa cấp độ 3
+                "-DNDEBUG", // Tắt các assert
+                "${file}", // Tệp nguồn hiện tại
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}.so", // Tạo tệp .so
+                "-lpthread", // Liên kết với pthread
+                "-L${workspaceFolder}/lib", // Thư mục chứa thư viện
+                "-I${workspaceFolder}/include", // Thư mục chứa tệp header
+                "-Wall", // Bật tất cả các cảnh báo
+                "-l:libcryptopp.a", // Liên kết với thư viện tĩnh Crypto++
+                "-shared", // Tạo thư viện chia sẻ
+                "-DBUILD_DLL", // Định nghĩa macro BUILD_DLL
+                "-fPIC", // Tạo mã vị trí độc lập
+                "-fvisibility=hidden" // Ẩn các ký hiệu không được xuất
+            ],
+            "options": {
+                "cwd": "${fileDirname}" // Thư mục làm việc hiện tại
+            },
+            "problemMatcher": ["$gcc"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "compiler: /usr/bin/g++"
+        }
+    ]
+}
