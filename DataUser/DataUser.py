@@ -88,10 +88,12 @@ def multi_keyword_search(k: list):
         query.append(oppoE(pk, prepare_keyword(
             vitalsigns[ki[0]].encode()) + prepare_keyword(ki[1])))
     query = json.dumps(query)
+    print(query)
     s.sendall(b'DataUser\n')
     s.sendall((query+'\n').encode())
     result = json.loads(json.loads(recvuntilendl(s).decode()))
-    # s.close()
+    print(result)
+    s.close()
     return decode_result(result)
 
 

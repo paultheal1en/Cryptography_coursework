@@ -141,12 +141,14 @@ class ThreadedServer(object):
                             client.sendall(b'End\n')
                         else:
                             for Esw in query:
+                                logging.info(f"Đã xử lý phần truy vấn {Esw}")
                                 res_tmp = set()
                                 for key in TBL.keys():
                                     D = _mul_(pk, TBL[key]['keyword'], Esw)
                                     Dq = DEp1(pk, skp1, D)
                                     client.sendall((json.dumps(Dq) + '\n').encode())
                                     res = json.loads(recvuntilendl(client).decode())['res']
+                                    logging.info(f"res = {res}") 
                                     if res == 1:
                                         res_tmp.update(TBL[key]['fileid'])
                                     logging.info(f"Đã xử lý phần truy vấn {cnt}")
@@ -161,6 +163,7 @@ class ThreadedServer(object):
                         logging.info(f"Kết quả truy vấn: {fileIDresults}")
                         for id in fileIDresults:
                             result.append([id, EncodedFile[id]])
+                        logging.info(f"Result: {result}")
                         client.sendall((json.dumps(result) + '\n').encode())
                     elif data.decode() == 'TrustAuthority':
                         data = recvuntilendl(client).decode().replace(',', '\n')

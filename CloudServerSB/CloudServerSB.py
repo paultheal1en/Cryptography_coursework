@@ -63,6 +63,7 @@ class ThreadedServer(object):
                     if data.decode() == 'DataUser':
                         data = recvuntilendl(client).decode()
                         data = json.loads(data)
+                        print(data)
                         context_client = ssl.create_default_context(
                             ssl.Purpose.SERVER_AUTH)
                         context_client.check_hostname = False  # Tắt kiểm tra tên máy chủ
