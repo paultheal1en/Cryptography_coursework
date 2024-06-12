@@ -1,0 +1,41 @@
+{ 
+            "version": "2.0.0", 
+            "tasks": [ 
+            { 
+            "type": "shell", 
+            "label": "C/C++: g++ build active file", 
+            "command": "/usr/bin/g++", 
+            "args": [ 
+                    "-g2", 
+                    "-O3", 
+                    "-DNDEBUG", 
+                    "${file}", 
+                    "-o", 
+                    "${fileDirname}/${fileBasenameNoExtension}.so", 
+                    "-pthread", 
+                    "-I${workspaceFolder}/include", 
+                    "-L${workspaceFolder}/lib", 
+                    "-l:libcryptopp.a", 
+                    "-l:libcryptopp.so", 
+                    "-Wall", 
+                    "-shared",
+                    "-DBUILD_DLL", 
+                    "-fvisibility=hidden",
+                    "-fPIC"
+            ],
+            "options": { 
+            "cwd": "${workspaceFolder}" 
+            }, 
+
+            "problemMatcher": [ 
+
+            "$gcc" 
+            ], 
+            "group": "build", 
+            "detail": "compiler: /usr/bin/g++" 
+
+            } 
+
+            ] 
+
+} 
